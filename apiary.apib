@@ -11,6 +11,9 @@ It should encapsulates all underlying storage & cache and provide convenient int
 
 ## Article Retrieval [/art/{artId}]
 
++ Parameters
+    + artId (number, required) - Article ID
+
 ### Get Article's Entities [GET /art/{artId}/entities]
 
 Get all article's entities including number of occurrence for each entity as an array.
@@ -23,9 +26,31 @@ If `artId` has no entity associated with it, return array of **zero** item.
 
 The returned data **SHOULD BE CACHED** whenever possible.
  
++ Parameters
+    + artId (number, required) - Article ID
+ 
 + Response 200 (application/json)
     + Attributes
         + entities (array[ArticleEntity]) - Entities object array associated with the article.
+   
+    + Body
+    
+            {
+              "entities": [
+                {
+                  "ent": "DKI Jakarta",
+                  "occ": 12
+                },
+                {
+                  "ent": "Gubernur",
+                  "occ": 8
+                },
+                {
+                  "ent": "Pilkada",
+                  "occ": 5
+                }
+              ]
+            }
 
 + Response 400 (application/json)
     Return when parameters requirement not met correctly
@@ -51,6 +76,9 @@ The order of the array should be arranged in such a way the **default category**
 If `artId` is not found, simply return **HTTP 404**.
 
 The returned data **SHOULD BE CACHED** whenever possible.
+ 
++ Parameters
+    + artId (number, required) - Article ID
  
 + Response 200 (application/json)
     + Attributes
@@ -100,10 +128,9 @@ Then return all article indices that are successfully pass all the above process
         + ids: 60001, 60003, 89001, 90400, 99181 (array[number], required) - Article Indides to be deleted.
         
 + Response 200 (application/json)
-    + Attributes (array, number) - Article Indices which are successfully removed.
-        + 60001
-        + 89001
-        + 99181
+    + Body
+    
+            [60001, 89001, 99181]
 
 + Response 400 (application/json)
     Return when parameters requirement not met correctly
@@ -187,7 +214,7 @@ Return number of article that is successfully removed.
 # Data Structures
 
 ## ArticleEntity (object)
-+ ent: `DKI Jakarta` (String) - Article's entity.
++ ent: `DKI Jakarta` (string) - Article's entity.
 + occ: `12` (number) - Number of occurence in the article body.
 
 ## Error (object)
