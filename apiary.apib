@@ -9,6 +9,69 @@ It should encapsulates all underlying storage & cache and provide convenient int
 
 # Group Article
 
+## Article Retrieval [/art/{artId}]
+
+### Get Article's Entities [GET /art/{artId}/entities]
+
+Get all article's entities including number of occurrence for each entity as an array.
+
+Entity should be sorted by highest number of occurrence first.
+
+If `artId` is not found, simply return **HTTP 404**.
+
+If `artId` has no entity associated with it, return array of **zero** item.
+
+The returned data **SHOULD BE CACHED** whenever possible.
+ 
++ Response 200 (application/json)
+    + Attributes
+        + entities (array[ArticleEntity]) - Entities object array associated with the article.
+
++ Response 400 (application/json)
+    Return when parameters requirement not met correctly
+    
+    + Attributes (DefaultError400)
+        
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+
+### Get Article's Categories [GET /art/{artId}/categories]
+
+Get all article's categories as an array.
+
+The order of the array should be arranged in such a way the **default category** should always comes first.
+
+If `artId` is not found, simply return **HTTP 404**.
+
+The returned data **SHOULD BE CACHED** whenever possible.
+ 
++ Response 200 (application/json)
+    + Attributes
+        + categories: 11, 21, 71, 101 (array[number]) - Category Indices associated with the article.
+
++ Response 400 (application/json)
+    Return when parameters requirement not met correctly
+    
+    + Attributes (DefaultError400)
+        
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+
+
 ## Article Alteration [/art/bulk]
 
 ### Bulk Article Removal [DELETE]
@@ -122,6 +185,10 @@ Return number of article that is successfully removed.
 
 
 # Data Structures
+
+## ArticleEntity (object)
++ ent: `DKI Jakarta` (String) - Article's entity.
++ occ: `12` (number) - Number of occurence in the article body.
 
 ## Error (object)
 + errCode (number) - Error Code
