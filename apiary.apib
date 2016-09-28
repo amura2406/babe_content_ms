@@ -40,8 +40,7 @@ Steps to retrieve data are as follow:
     
                 repeated entities (object)
                     * string ent
-                    * uint32 occ
-                    
+                    * uint32 occ                
 2. If not found or only partial found then get all the data from database (`sasha_article`, `sasha_source`, `sasha_publisher`, `sasha_article_category`, `sasha_category`, `tbl_article_entities`)
 3. Construct the returned message using Protobuf model.
 4. Entities should be sorted by highest number of occurrence first.
