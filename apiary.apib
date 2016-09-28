@@ -198,7 +198,22 @@ Steps to retrieve data are as follow:
  
 + Response 200 (application/json)
     + Attributes
-        + categories: 11, 21, 71, 101 (array[number]) - Category Indices associated with the article.
+        + categories (array[Category]) - Categories associated with the article.
+        
+    + Body
+        
+            {
+              "cats": [
+                {
+                  "id": 3,
+                  "name": "Terbaru"
+                },
+                {
+                  "id": 101,
+                  "name": "DKI Jakarta"
+                }
+              ]
+            }
 
 + Response 400 (application/json)
     Return when parameters requirement not met correctly
