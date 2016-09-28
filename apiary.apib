@@ -1,7 +1,7 @@
 FORMAT: 1A
-HOST: http://localhost/content/v1
+HOST: http://localhost:9000/content/v1
 
-# babe-content-ms
+# BABE Content Microservice
 
 Content Microservice main goal is to provide fast and reliable content access.
  
@@ -13,6 +13,72 @@ It should encapsulates all underlying storage & cache and provide convenient int
 
 + Parameters
     + artId (number, required) - Article ID
+
+### Get Article's Metadata [GET /art/{artId}/metadata]
+
+Get all article's metadata including publisher, source, categories and entities of an article.
+
+Entities should be sorted by highest number of occurrence first.
+
+If `artId` is not found, simply return **HTTP 404**.
+
+If `artId` has no entity associated with it, return array of **zero** item.
+
+The returned data **SHOULD BE CACHED** whenever possible.
+ 
++ Parameters
+    + artId (number, required) - Article ID
+ 
++ Response 200 (application/json)
+    + Attributes
+        + pub (Publisher, required) - Publisher ID of the article.
+        + src (Source, required) - Source ID of the article.
+        + cats (array[Category]) - Category Indices of the article.
+        + entities (array[string], optional) - Entities string array associated with the article.
+    
+    + Body
+    
+            {
+              "pub": {
+                "id": 3,
+                "name": "Detik"
+              },
+              "src": {
+                "id": 9,
+                "name": "Detik - Food"
+              },
+              "cats": [
+                {
+                  "id": 3,
+                  "name": "Terbaru"
+                },
+                {
+                  "id": 101,
+                  "name": "DKI Jakarta"
+                }
+              ],
+              "entities": [
+                "DKI Jakarta",
+                "Gubernur",
+                "Pilkada"
+              ]
+            }
+
++ Response 400 (application/json)
+    Return when parameters requirement not met correctly
+    
+    + Attributes (DefaultError400)
+        
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+
 
 ### Get Article's Entities [GET /art/{artId}/entities]
 
@@ -216,6 +282,18 @@ Return number of article that is successfully removed.
 ## ArticleEntity (object)
 + ent: `DKI Jakarta` (string) - Article's entity.
 + occ: `12` (number) - Number of occurence in the article body.
+
+## Category (object)
++ id: `3` (number, required) - Category ID.
++ name: `Terbaru` (string, required) - Category Name.
+
+## Source (object)
++ id: `9` (number, required) - Article source ID.
++ name: `Detik - Food` (string, required) - Article source name.
+
+## Publisher (object)
++ id: `5` (number, required) - Article publisher ID.
++ name: `Detik` (string, required) - Article publisher name.
 
 ## Error (object)
 + errCode (number) - Error Code
