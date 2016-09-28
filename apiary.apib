@@ -18,13 +18,41 @@ It should encapsulates all underlying storage & cache and provide convenient int
 
 Get all article's metadata including publisher, source, categories and entities of an article.
 
-Entities should be sorted by highest number of occurrence first.
+Steps to retrieve data are as follow:
 
-If `artId` is not found, simply return **HTTP 404**.
+1. Find the metadata (protobuf model) on multiple redis key (MGET) :
+    1. `x-art-meta:{artId}` => object serialized as binary using Protobuf containing:
+    
+                pub (object)
+                    * uint32 id
+                    * string name
+                src: (object)
+                    * uint32 id
+                    * string name
+                    
+    2. `x-art-cats:{artId}` => object serialized as binary using Protobuf containing:
+                
+                repeated cat (object)
+                    * uint32 id
+                    * string name
+                    
+    3. `x-art-entities:{artId}` => object serialized as binary using Protobuf containing:
+    
+                repeated entities (object)
+                    * string ent
+                    * uint32 occ
+                    
+2. If not found or only partial found then get all the data from database (`sasha_article`, `sasha_source`, `sasha_publisher`, `sasha_article_category`, `sasha_category`, `tbl_article_entities`)
+3. Construct the returned message using Protobuf model.
+4. Entities should be sorted by highest number of occurrence first.
+5. The order of the array should be arranged in such a way the **default category** should always comes first.
+6. If data is retrieved from DB then populate on redis keys `x-art-meta:{artId}`, `x-art-cats:{artId}`, `x-art-entities:{artId}`, **TTL to 30 minutes** (configurable), keep the value as `Protobuf`.
+7. Return the message.
 
-If `artId` has no entity associated with it, return array of **zero** item.
+**NB:**
 
-The returned data **SHOULD BE CACHED** whenever possible.
+- If `artId` is not found, simply return **HTTP 404**.
+- If `artId` has no entity associated with it, return array of **zero** item.
  
 + Parameters
     + artId (number, required) - Article ID
@@ -34,7 +62,7 @@ The returned data **SHOULD BE CACHED** whenever possible.
         + pub (Publisher, required) - Publisher ID of the article.
         + src (Source, required) - Source ID of the article.
         + cats (array[Category]) - Category Indices of the article.
-        + entities (array[string], optional) - Entities string array associated with the article.
+        + entities (array[ArticleEntity], optional) - Entities object array associated with the article.
     
     + Body
     
@@ -58,9 +86,18 @@ The returned data **SHOULD BE CACHED** whenever possible.
                 }
               ],
               "entities": [
-                "DKI Jakarta",
-                "Gubernur",
-                "Pilkada"
+                {
+                  "ent": "DKI Jakarta",
+                  "occ": 12
+                },
+                {
+                  "ent": "Gubernur",
+                  "occ": 8
+                },
+                {
+                  "ent": "Pilkada",
+                  "occ": 5
+                }
               ]
             }
 
@@ -84,13 +121,20 @@ The returned data **SHOULD BE CACHED** whenever possible.
 
 Get all article's entities including number of occurrence for each entity as an array.
 
-Entity should be sorted by highest number of occurrence first.
+Steps to retrieve data are as follow:
 
-If `artId` is not found, simply return **HTTP 404**.
+1. Find the metadata (protobuf model) on redis key `x-art-entities:{artId}`.
+2. If not found then get all the data from database (`tbl_article_entities`)
+3. Construct the returned message using Protobuf model.
+4. Entities should be sorted by highest number of occurrence first.
+5. If data is retrieved from DB then populate on redis key `x-art-entities:{artId}`, **TTL to 30 minutes** (configurable), keep the value as `Protobuf`.
+6. Return the message.
 
-If `artId` has no entity associated with it, return array of **zero** item.
+**NB:**
 
-The returned data **SHOULD BE CACHED** whenever possible.
+- If `artId` is not found, simply return **HTTP 404**.
+- If `artId` has no entity associated with it, return array of **zero** item.
+
  
 + Parameters
     + artId (number, required) - Article ID
@@ -136,12 +180,19 @@ The returned data **SHOULD BE CACHED** whenever possible.
 ### Get Article's Categories [GET /art/{artId}/categories]
 
 Get all article's categories as an array.
+    
+Steps to retrieve data are as follow:
 
-The order of the array should be arranged in such a way the **default category** should always comes first.
+1. Find the metadata (protobuf model) on redis key `x-art-cats:{artId}`.
+2. If not found then get all the data from database (`sasha_category`, `sasha_article_category`)
+3. Construct the returned message using Protobuf model.
+4. The order of the array should be arranged in such a way the **default category** should always comes first.
+5. If data is retrieved from DB then populate on redis key `x-art-cats:{artId}`, **TTL to 30 minutes** (configurable), keep the value as `Protobuf`.
+6. Return the message.
 
-If `artId` is not found, simply return **HTTP 404**.
+**NB:**
 
-The returned data **SHOULD BE CACHED** whenever possible.
+- If `artId` is not found, simply return **HTTP 404**.
  
 + Parameters
     + artId (number, required) - Article ID
