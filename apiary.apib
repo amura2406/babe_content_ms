@@ -9,10 +9,88 @@ It should encapsulates all underlying storage & cache and provide convenient int
 
 # Group Article
 
-## Article Retrieval [/art/{artId}]
+## Article Retrieval [/art]
 
+### Get Article Detail [GET /art/detail/{artId}]
+
+Get detail article including publisher, source, categories, entities etc.
+
+Steps to retrieve data are as follow:
+
+1. Find article detail from redis : `x-art:{artId}`
+2. If not found then get all the data from database (`sasha_article`, `sasha_source`, `sasha_publisher`, `sasha_category`, `tbl_article_entities`)
+3. Entities should be sorted by highest number of occurrence first.
+4. If data is retrieved from DB then populate on redis keys `x-art:{artId}`.
+7. Return the message.
+
+**NB:**
+
+- If `artId` is not found, simply return **HTTP 404**.
+- If `artId` has no entity associated with it, return array of **zero** item.
+ 
 + Parameters
     + artId (number, required) - Article ID
+
++ Response 200 (application/json)
+    + Attributes 
+        + article (ArticleFeed, required)
+
++ Response 400 (application/json)
+    Return when parameters requirement not met correctly
+    
+    + Attributes (DefaultError400)
+        
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+    
+    
+### MGet Article Detail [POST /art/detail]
+
+MGet detail article's including base on id's article parameter. 
+
+Steps to retrieve data are as follow:
+
+1. Find article detail from redis : `x-art:{artId}`
+2. If not found then get all the data from database (`sasha_article`, `sasha_source`, `sasha_publisher`, `sasha_category`, `tbl_article_entities`)
+3. Entities should be sorted by highest number of occurrence first.
+4. If data is retrieved from DB then populate on redis keys `x-art:{artId}`.
+7. Return the message.
+
+**NB:**
+
+- If `artId` is not found, simply return **HTTP 404**.
+- If `artId` has no entity associated with it, return array of **zero** item.
+ 
++ Request (application/json)
+     + Attributes
+        + ids: 60001, 60003, 89001, 90400, 99181 (array[number], required) - Article Indices to be fetched.
+ 
++ Response 200 (application/json)
+    + Attributes 
+        + article (array[ArticleFeed], required)
+
++ Response 400 (application/json)
+    Return when parameters requirement not met correctly
+    
+    + Attributes (DefaultError400)
+        
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+
 
 ### Get Article's Metadata [GET /art/{artId}/metadata]
 
@@ -176,7 +254,7 @@ Steps to retrieve data are as follow:
 
     + Attributes (DefaultError503)
 
-### Get Article's Categories [GET /art/{artId}/categories]
+### Get Feed Article Categories [GET /art/{artId}/categories]
 
 Get all article's categories as an array.
     
@@ -229,6 +307,115 @@ Steps to retrieve data are as follow:
     Return when server has internal error and can't continue fulfilling the request
 
     + Attributes (DefaultError503)
+
+## Retrieval Article per Category [/list/category/{?off}{?lim}{?appId}{?catId}{?type}]
++ Parameters
+    + off: 0 (number, optional) - Latest Score Feed 
+    + lim: 20 (number, optional) - Number Article 
+    + appId: 1 (number, optional) - Application Id ( 1 = babe, 2 = durian )
+    + catId: 1 (number, optional) - Category Id
+    + type:  1 (number, optional) - Content Type ( 1 = article, 2 = video )
+    
+### Get Latest Article Per Category [GET]
+
+Retrieve list articles from redis list `x-list-art:{appId}:{catId}` or `x-list-vid:{appId}:{catId}`  and article detail `x-art:{artId}` based on paramter category id.
+ 
++ Response 200 (application/json)
+    + Attributes 
+        + lastScore  : 1489054358 (number, optional)
+        + articles   (array[ArticleFeed])
+    
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+
+## Retrieval Popular Article per Category [/list/popular/category/{?off}{?lim}{?appId}{?catId}]
++ Parameters
+    + off: 0 (number, optional) - Page Number (default = 0)
+    + lim: 20 (number, optional) - Item Number (default = 20)
+    + appId: 1 (number, optional) - Application Id
+    + catId: 1 (number, optional) - Category Id
+
+### Get Latest Popular Article Per Category [GET]
+
+Retrieve list articles from redis list `x-list-popular:{appId}:{catId}` and article detail `x-art:{artId}` based on paramter category id.
+ 
++ Response 200 (application/json)
+    + Attributes 
+        + lastScore  : 1489054358 (number, optional)
+        + articles   (array[ArticleFeed]) 
+    
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+
+## Article Verification Retrieval [/list/pending/{?off}{?lim}{?status}{?srcType}]
++ Parameters
+    + off: 0 (number, optional) - Page Number (default = 0)
+    + lim: 10 (number, optional) - Item Number (default = 10)
+    + status: 1 (number, optional) - -1=rejected, 0=pending
+    + srcType: 1 (number, optional) - 1=YT Trending, 2=YT Related 
+
+### Retrieve Article's Verification [GET]
+
+Retrieve verification article's (`babe_verification.tbl_verification_article` ).
+ 
++ Response 200 (application/json)
+    + Attributes 
+        + articles (array[ArticleVerification])
+    
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)
+    
+    
+## Article Verification Approval [/approval/{verId}/{status}]
++ Parameters
+    + verId: 0 (number, optional) - Article Verification Id
+    + status: 0 (number, optional) - 0 = pending, 1 = approve , -1 = rejected
+
+### Approve Article's Verification [POST]
+
+Update status article , set status 1 = approve or -1 = rejected. 
+When approve:
+
+    Copy the articles from "babe_verification.tbl_verification_article" into main article table
+    Then send message to rabbit mq ( host : 10.2.15.20 ,  queueName : babe_article_injector_mq ).
+    
+When rejected:
+
+    Just change the status to (-1=rejected)
+ 
++ Response 204 (application/json)
+
++ Response 404 (application/json)
+    Return when `artId` is not found
+    
+    + Attributes (DefaultError404)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError503)    
+
 
 
 ## Article Alteration [/art/bulk]
@@ -337,28 +524,268 @@ Return number of article that is successfully removed.
     Return when server has internal error and can't continue fulfilling the request
 
     + Attributes (DefaultError503)
+    
+### Upsert Article [PATCH /art/upsert]
+Update Article Detail then :
+
+1. Related Tables Update
+    - `sasha_article`
+    - `sasha_article_category`
+    - `sasha_article_entity`
+
+2. Update on Redis
+    - `x-art:{artiId}`
+    - `x-list : {categoryName}`
+  
+3. Update on SOLR
+    - `article-repo`
 
 
++ Request (application/json)
+    + Attributes 
+      + article (ArticleUpsert) 
+      + source (SourceUpsert)
+      + category (array[CategoryUpsert])
+      + publisher (array[PublisherUpsert])
+      + articleEntity (array[ArticleEntity])
 
 
++ Response 200 (application/json)
+    + Attributes (ArticleResponse)
+    
++ Response 500 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError500)
+
+### Populate Popular Article [PUT /art/popular/{catId}/replace]
+Update Feed Popular Article redis `x-list:popular:{catId}`
+
++ Request (application/json)
+    + Attributes 
+      + ids: 60001, 60003, 89001, 90400, 99181 (array[number], required) - Popular Article ids Feed.
+
++ Response 204 (application/json)
+
++ Response 500 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError500)
+
+
+# Group Article Insertion
+
+## Create New Article Detail [/art/]
+
+### Create New Article Detail [PUT /art/metadata]
+Create new Article Detail then :
+
+1. Save to MySQL Database tables
+    - `sasha_article`
+    - `sasha_article_category`
+    - `sasha_article_entity`
+    - `sasha_article_topic`
+  
+2. Add New Table
+    - Table name  : `tbl_topic`
+    - Field       : `id`, `label`
+    
+    - Table name  : `tbl_cluster_topic`
+    - Field       : `clusterId`, `topicId`, `label`, `score`
+    
+    - Table name  : `tbl_article_cluster_topic` 
+    - Field       : `artId`, `topicClusterId1`
+    - Field       : `artId`, `topicClusterId2` 
+
+3. Save to Redis
+    - `x-art:{artiId}`
+    - `x-list : {categoryName}`
+  
+4. Save to SOLR
+    - `article-repo`
+
+
++ Request (application/json)
+    + Attributes 
+      + article (Article) 
+      + source (Source)
+      + category (Category)
+      + publisher (Publisher)
+      + articleEntity (ArticleEntity)
+      + topic (TopicRequest)
+      
+
++ Response 200 (application/json)
+    + Attributes (ArticleResponse)
+    
++ Response 500 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
+
+    + Attributes (DefaultError500)
+    
+## Article Advertorial [/content]
+
+### Insert or Update Advertorial [POST /content/v1/advert/upsert]
+Insert or update article advertorial in DB and Redis.
+
++ Request (application/json)
+    + Attributes (ArticleAdvertorial)
+
++ Response 204
+
++ Response 404
+
+        resource not found
 
 # Data Structures
+
+## ArticleFeed (object)
++ detail    (ArticleDetail, required)
++ publisher (Publisher, required) - Publisher ID of the article.
++ source    (Source, required) - Source ID of the article.
++ categorys (array[Category]) - Category Indices of the article.
++ entities  (array[ArticleEntity], optional) - Entities object array associated with the article.
+
+## ArticleDetail (object)
++ artId     : `11146263` (number) - article id
++ created: `1488534293` (number, required) - Created Date timestamp
++ published: `1488532715` (number, required) - Published Date timestamp
++ title: `Tips maintenance hp` (string, required) - Title Article 
++ author: `Salman Al Farizi` (string, required) - The Author of article
++ body: `Tips maintenance hp merupakan kegiatan yang mengasyikan` (string, required) - Title Body ,
++ summary: `Summary Tips maintenance hp merukan kegiatan yang mengasikan lho bro` (string, required) - The Summary of article
++ originBody: `Tips maintenance hp merukan kegiatan yang mengasikan lho bro` (string, required) - Article Origin Body 
++ url: `http://suara.com/techno/tips-memelihara-hp.html` (string, required) - Article Url
++ image: `39340f7cd8aa894ea429062198ef9f48.jpeg` (string, required) - Image Name
++ images: [`39340f7cd8aa894ea429062198ef9f48.jpeg`, `39340f7cd8aa894ea429062198ef9f49.jpeg'] (array[string], required) - Images Array name
++ status: `1` (number, required) - Status Code
++ featured: `0` (number, required) - Featured code
++ hash: `7b579cf8217ef556308735e9b4bb5ac5` (string, required) - hash code
++ addData (AddData,optional) - add Data
++ type: `0` (number, required) - Article type
++ youtubeChannelId: `0` (number, required) - YouTube Channel Id
++ adName: `Hendi Ads` (string) - Advertorial - `Fetching from sasha_article_advertorial`
++ actionText: `Follow` (string) - Action Text  - `Fetching from sasha_article_advertorial`
++ actionUrl: `null` (string) - Action URL - `Fetching from sasha_article_advertorial`
++ view: `0` (number, required) - Article View
++ comments (ArticleComment, optional)
++ displayType (number, required) - Display Type
++ appIds: `[1, 2]` (array[number], required) - appId 1 = babe, 2 = durian
+
+## Article (object)
++ artId     : `11146263` (number) - article id
++ created: `1488534293` (number, required) - Created Date timestamp
++ published: `1488532715` (number, required) - Published Date timestamp
++ title: `Tips maintenance hp` (string, required) - Title Article 
++ author: `Salman Al Farizi` (string, required) - The Author of article
++ body: `Tips maintenance hp merupakan kegiatan yang mengasyikan` (string, required) - Title Body ,
++ originBody: `Tips maintenance hp merukan kegiatan yang mengasikan lho bro` (string, required) - Article Origin Body 
++ url: `http://suara.com/techno/tips-memelihara-hp.html` (string, required) - Article Url
++ image: `39340f7cd8aa894ea429062198ef9f48.jpeg` (string, required) - Image Name
++ images: [`39340f7cd8aa894ea429062198ef9f48.jpeg`, `39340f7cd8aa894ea429062198ef9f49.jpeg'] (array[string], required) - Images Array name
++ status: `1` (number, required) - Status Code
++ featured: `0` (number, required) - Featured code
++ hash: `7b579cf8217ef556308735e9b4bb5ac5` (string, required) - hash code
++ addData: `null` (string) - add Data
++ type: `0` (number, required) - Article type
++ youtubeChannelId: `0` (number, required) - YouTube Channel Id
++ adName: `Hendi Ads` (string) - Advertorial
++ actionText: `Follow` (string) - Action Text
++ actionUrl: `null` (string) - Action URL
+
+## ArticleUpsert (object)
++ id: `10406372` (number) - article id
++ created: `2016-11-25 11:00:00` (string) - Created Date
++ published: `2016-11-25 11:00:00` (string) - Published Date
++ title: `Tips maintenance hp` (string) - Title Article 
++ body: `Tips maintenance hp merupakan kegiatan yang mengasyikan` (string) - Title Body ,
++ originBody: `Tips maintenance hp merukan kegiatan yang mengasikan lho bro` (string) - Article Origin Body 
++ author: `Salman Al Farizi` (string) - The Author of article
++ url: `http://suara.com/techno/tips-memelihara-hp.html` (string) - Article Url
++ image: `39340f7cd8aa894ea429062198ef9f48.jpeg` (string) - Image Name
++ images: [`39340f7cd8aa894ea429062198ef9f48.jpeg`, `39340f7cd8aa894ea429062198ef9f49.jpeg'] (array[string]) - Images Array name
++ status: `1` (number) - Status Code
++ featured: `0` (number) - Featured code
++ hash: `7b579cf8217ef556308735e9b4bb5ac5` (string) - hash code
++ addData: `null` (string) - add Data
++ type: `0` (number) - Article type
++ youtubeChannelId: `0` (number) - YouTube Channel Id
++ adName: `Hendi Ads` (string) - Advertorial
++ actionText: `Follow` (string) - Action Text
++ actionUrl: `null` (string) - Action URL
+
+## ArticleVerification (object)
++ verificationId: `10406372` (number) - article id
++ sourceId: `3548` (number) - Status Code
++ created: `2016-11-25 11:00:00` (string) - Created Date
++ published: `2016-11-25 11:00:00` (string) - Published Date
++ title: `Tips maintenance hp` (string) - Title Article 
++ author: `Javier Zaneti` (string) - The Author of article
++ summary: `Tips maintenance hp merupakan kegiatan yang mengasyikan` (string) - Summary Article ,
++ body: `Tips maintenance hp merupakan kegiatan yang mengasyikan` (string) - Title Body ,
++ url: `http://suara.com/techno/tips-memelihara-hp.html` (string) - Article Url
++ image: `39340f7cd8aa894ea429062198ef9f48.jpeg` (string) - Image Name
++ images: [`39340f7cd8aa894ea429062198ef9f48.jpeg`, `39340f7cd8aa894ea429062198ef9f49.jpeg'] (array[string]) - Images Array name
++ status: `1` (number) - Status Code
++ hash: `7b579cf8217ef556308735e9b4bb5ac5` (string) - hash code
++ addData: `null` (string) - add Data
++ type: `0` (number) - Article type
++ originBody: `Tips maintenance hp merukan kegiatan yang mengasikan lho bro` (string) - Article Origin Body 
++ effCatId: `6` (number) - Effective Category Id
 
 ## ArticleEntity (object)
 + ent: `DKI Jakarta` (string) - Article's entity.
 + occ: `12` (number) - Number of occurence in the article body.
 
 ## Category (object)
-+ id: `3` (number, required) - Category ID.
++ catId: `3` (number, required) - Category ID.
 + name: `Terbaru` (string, required) - Category Name.
 
+## CategoryUpsert (object)
++ catId: `3` (number) - Category ID.
++ name: `Terbaru` (string) - Category Name.
+
 ## Source (object)
-+ id: `9` (number, required) - Article source ID.
++ srcId: `9` (number, required) - Article source ID.
 + name: `Detik - Food` (string, required) - Article source name.
 
+## SourceUpsert (object)
++ srcId: `9` (number) - Article source ID.
++ name: `Detik - Food` (string) - Article source name.
+
 ## Publisher (object)
-+ id: `5` (number, required) - Article publisher ID.
++ pubId: `5` (number, required) - Article publisher ID.
 + name: `Detik` (string, required) - Article publisher name.
+
+## PublisherUpsert (object)
++ pubId: `5` (number) - Article publisher ID.
++ name: `Detik` (string) - Article publisher name.
+
+## TopicRequest (object)
++ `topic-128` (array[TopicItem], optional) - Topic indices on 128 cluster.
++ `topic-256` (array[TopicItem], optional) - Topic indices on 256 cluster.
++ `topic-512` (array[TopicItem], optional) - Topic indices on 512 cluster.
++ `tuotiao-topic-128` (array[TopicItem], optional) - Tuotiao topic indices on 128 cluster.
++ `tuotiao-topic-512` (array[TopicItem], optional) - Tuotiao topic indices on 512 cluster.
+
+## Topic (object)
++ id: `123` (number, required) - Topic ID
++ label: `Pilkada DKI` (string, required) - Topic Label
++ score: `0.91` (number, required) - Topic Score
+
+## AddData (object)
++ embedPlayer: `<msiframe width="480" height="270" src="//www.youtube.com/embed/j35M7n9yDz4" frameborder="0" allowfullscreen></msiframe>` (string, required) - EmbedPlayer
++ videoLink: `http://youtu.be/j35M7n9yDz4` (string, required) - VideoLink
++ `tags` (array[string], optional) - Video Tags
++ pid: `2816` (number, required) - Playlist Id
++ videoId: `2816` (number, required) - Video Id
++ videoDuration: `2816` (number, required) - Video Duration
+
+## ArticleComment (object)
++ babe   : `50` (number, required) - Total Comment babe
++ durian : `25` (number, required) - Total Comment durian
+
+## TopicItem (Topic)
 
 ## Error (object)
 + errCode (number) - Error Code
@@ -380,6 +807,22 @@ Return number of article that is successfully removed.
 + errCode: `-14`
 + errMsg: Request Entity Too Large
 
+## DefaultError500 (Error)
++ errCode: `-10`
++ errMsg: Internal service error
+
 ## DefaultError503 (Error)
 + errCode: `-10`
 + errMsg: Backend service is down
+
+## ArticleResponse (object)
++ articleId: `411`
++ articleEntityId: `411212`
++ articleCategoryId: `12345`
+
+## ArticleAdvertorial
++ articleId: `11175335` (number, required) - Article ID
++ adName: `testAd` (string) - Ad name
++ actionText: `testActionText` (string) - Action text
++ actionUrl: `testActionUrl` (string) - Action URL
++ status: `1` (number) - Status
