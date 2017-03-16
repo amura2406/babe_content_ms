@@ -361,12 +361,13 @@ Retrieve list articles from redis list `x-list-popular:{appId}:{catId}` and arti
 
     + Attributes (DefaultError503)
 
-## Article Verification Retrieval [/list/pending/{?off}{?lim}{?status}{?srcType}]
+## Article Verification Retrieval [/list/pending/{?off}{?lim}{?status}{?srcType}{?maxDate}]
 + Parameters
     + off: 0 (number, optional) - Page Number (default = 0)
     + lim: 10 (number, optional) - Item Number (default = 10)
     + status: 1 (number, optional) - -1=rejected, 0=pending
-    + srcType: 1 (number, optional) - 1=YT Trending, 2=YT Related 
+    + srcType: 1 (number, optional) - 1=YT Trending, 2=YT Relte ated 
+    + maxDate: 1486027730 (number, optional) - Max created date (in epoch)
 
 ### Retrieve Article's Verification [GET]
 
