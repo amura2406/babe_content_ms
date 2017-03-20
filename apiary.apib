@@ -310,7 +310,7 @@ Steps to retrieve data are as follow:
 
 ## Retrieval Article per Category [/list/category{?off}{?lim}{?appId}{?catId}{?type}]
 + Parameters
-    + off: 0 (number, optional) - Latest Score Feed 
+    + off: Double.MaxValue (number, optional) - Latest score (default to Double.MaxValue)
     + lim: 20 (number, optional) - Number Article 
     + appId: 1 (number, optional) - Application Id ( 1 = babe, 2 = durian )
     + catId: 1 (number, optional) - Category Id
@@ -337,8 +337,8 @@ Retrieve list articles from redis list `x-list-art:{appId}:{catId}` or `x-list-v
 
 ## Retrieval Popular Article per Category [/list/popular/category{?off}{?lim}{?appId}{?catId}]
 + Parameters
-    + off: 0 (number, optional) - Page Number (default = 0)
-    + lim: 20 (number, optional) - Item Number (default = 20)
+    + off: Double.MaxValue (number, optional) - Latest score (default to Double.MaxValue)
+    + lim: 20 (number, optional) - Max item returned (default = 20)
     + appId: 1 (number, optional) - Application Id
     + catId: 1 (number, optional) - Category Id
 
