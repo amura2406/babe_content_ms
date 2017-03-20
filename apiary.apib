@@ -308,7 +308,7 @@ Steps to retrieve data are as follow:
 
     + Attributes (DefaultError503)
 
-## Retrieval Article per Category [/list/category/{?off}{?lim}{?appId}{?catId}{?type}]
+## Retrieval Article per Category [/list/category{?off}{?lim}{?appId}{?catId}{?type}]
 + Parameters
     + off: 0 (number, optional) - Latest Score Feed 
     + lim: 20 (number, optional) - Number Article 
@@ -335,7 +335,7 @@ Retrieve list articles from redis list `x-list-art:{appId}:{catId}` or `x-list-v
 
     + Attributes (DefaultError503)
 
-## Retrieval Popular Article per Category [/list/popular/category/{?off}{?lim}{?appId}{?catId}]
+## Retrieval Popular Article per Category [/list/popular/category{?off}{?lim}{?appId}{?catId}]
 + Parameters
     + off: 0 (number, optional) - Page Number (default = 0)
     + lim: 20 (number, optional) - Item Number (default = 20)
