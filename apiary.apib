@@ -447,9 +447,8 @@ Then return all article indices that are successfully pass all the above process
         + ids: 60001, 60003, 89001, 90400, 99181 (array[number], required) - Article Indides to be deleted.
         
 + Response 200 (application/json)
-    + Body
-    
-            [60001, 89001, 99181]
+    + Attributes
+        + ids: 60001, 60003, 89001, 90400, 99181 (array[number]) - Deleted article ids.
 
 + Response 400 (application/json)
     Return when parameters requirement not met correctly
@@ -463,7 +462,6 @@ Then return all article indices that are successfully pass all the above process
         
 + Response 503 (application/json)
     Return when server has internal error and can't continue fulfilling the request
-
     + Attributes (DefaultError503)
 
 ### Article Removal by Publisher [DELETE /art/bulk/pub/{pubId}]
@@ -472,14 +470,14 @@ Remove all article from specified publisher ID.
 
 Logic of the removal is the same as [bulk article removal](#reference/article/bulk-article-removal)
 
-Return number of article that is successfully removed.
+Return article that is successfully removed.
 
 + Parameters
     + pubId: 87 (string, required) - Publisher ID
     
 + Response 200 (application/json)
     + Attributes
-        + count: 11000 (string) - Number of actual deleted article.
+        + ids: 60001, 60003, 89001, 90400, 99181 (array[number]) - Deleted article ids.
 
 + Response 404 (application/json)
     Return when publisher id is not found
@@ -493,7 +491,6 @@ Return number of article that is successfully removed.
         
 + Response 503 (application/json)
     Return when server has internal error and can't continue fulfilling the request
-
     + Attributes (DefaultError503)
 
 ### Article Removal by Source [DELETE /art/bulk/src/{srcId}]
@@ -502,14 +499,14 @@ Remove all article from specified source ID.
 
 Logic of the removal is the same as [bulk article removal](#reference/article/bulk-article-removal)
 
-Return number of article that is successfully removed.
+Return article that is successfully removed.
 
 + Parameters
     + srcId: 37 (string, required) - Source ID
     
 + Response 200 (application/json)
     + Attributes
-        + count: 2400 (string) - Number of actual deleted article.
+        + ids: 60001, 60003, 89001, 90400, 99181 (array[number]) - Deleted article ids.
 
 + Response 404 (application/json)
     Return when source id is not found
@@ -523,7 +520,35 @@ Return number of article that is successfully removed.
         
 + Response 503 (application/json)
     Return when server has internal error and can't continue fulfilling the request
+    + Attributes (DefaultError503)
 
+### Article Removal by Category [DELETE /art/bulk/cat/{catId}]
+
+Remove all article from specified category ID.
+
+Logic of the removal is the same as [bulk article removal](#reference/article/bulk-article-removal)
+
+Return article that is successfully removed.
+
++ Parameters
+    + catId: 37 (string, required) - Category ID
+    
++ Response 200 (application/json)
+    + Attributes
+        + ids: 60001, 60003, 89001, 90400, 99181 (array[number]) - Deleted article ids.
+
++ Response 404 (application/json)
+    Return when source id is not found
+    
+    + Attributes (DefaultError404)
+    
++ Response 413 (application/json)
+    Return when request data is too big (limit configurable)
+    
+    + Attributes (DefaultError413)
+        
++ Response 503 (application/json)
+    Return when server has internal error and can't continue fulfilling the request
     + Attributes (DefaultError503)
     
 ### Upsert Article [PATCH /art/upsert]
