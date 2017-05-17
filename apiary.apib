@@ -365,13 +365,12 @@ Retrieve list articles from redis list `x-list-popular:{appId}:{catId}` and arti
 + Parameters
     + off: 0 (number, optional) - Page Number (default = 0)
     + lim: 10 (number, optional) - Item Number (default = 10)
-    + status: 1 (number, optional) - -1=rejected, 0=pending
-    + srcType: 1 (number, optional) - 1=YT Trending, 2=YT Relte ated 
+    + status: 1 (number, optional) - -1=rejected, -4=pending
     + maxDate: 1486027730 (number, optional) - Max created date (in epoch)
 
 ### Retrieve Article's Verification [GET]
 
-Retrieve verification article's (`babe_verification.tbl_verification_article` ).
+Retrieve articles by it's status.
  
 + Response 200 (application/json)
     + Attributes 
@@ -388,23 +387,15 @@ Retrieve verification article's (`babe_verification.tbl_verification_article` ).
     + Attributes (DefaultError503)
     
     
-## Article Verification Approval [/approval/{verId}/{status}]
+## Article Verification Approval [/approval/{articleId}/{status}]
 + Parameters
-    + verId: 0 (number, optional) - Article Verification Id
-    + status: 0 (number, optional) - 0 = pending, 1 = approve , -1 = rejected
+    + articleId: 0 (number, optional) - Article Id
+    + status: 0 (number, optional) - -4 = pending, 1 = approve , -1 = rejected
 
 ### Approve Article's Verification [POST]
 
 Update status article , set status 1 = approve or -1 = rejected. 
-When approve:
 
-    Copy the articles from "babe_verification.tbl_verification_article" into main article table
-    Then send message to rabbit mq ( host : 10.2.15.20 ,  queueName : babe_article_injector_mq ).
-    
-When rejected:
-
-    Just change the status to (-1=rejected)
- 
 + Response 204 (application/json)
 
 + Response 404 (application/json)
@@ -741,7 +732,7 @@ Insert or update article advertorial in DB and Redis.
 + actionUrl: `null` (string) - Action URL
 
 ## ArticleVerification (object)
-+ verificationId: `10406372` (number) - article id
++ articleId: `10406372` (number) - article id
 + sourceId: `3548` (number) - Status Code
 + created: `2016-11-25 11:00:00` (string) - Created Date
 + published: `2016-11-25 11:00:00` (string) - Published Date
